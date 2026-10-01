@@ -1,0 +1,24 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "client": {
+      "root": "client",
+      "framework": "vite"
+    },
+    "ml-service": {
+      "root": "ml-service",
+      "framework": "fastapi"
+    },
+    "server": {
+      "root": "server",
+      "framework": "express",
+      "bindings": [
+        { "type": "service", "service": "ml-service", "format": "url", "env": "ML_SERVICE_URL" }
+      ]
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": { "service": "server" } },
+    { "source": "/(.*)", "destination": { "service": "client" } }
+  ]
+}

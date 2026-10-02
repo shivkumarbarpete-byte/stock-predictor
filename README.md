@@ -1,56 +1,175 @@
-# Stock Predictor
+# 📈 StockPredictor
 
-A full-stack application predicting next-day close prices for NIFTY 50 stocks using Machine Learning.
+A full-stack stock analysis and prediction dashboard for **NIFTY 50** stocks. It fetches real market data, shows price history with moving averages, and predicts the next-day closing price using a Machine Learning model.
 
-**Note:** The backend services are hosted on Render's free tier. They may spin down after 15 minutes of inactivity. When you first open the app, the initial request might take ~30-50 seconds as the servers wake up.
+🔗 **Live Demo:** [https://stock-predictor-ten-lime.vercel.app](https://stock-predictor-ten-lime.vercel.app/)
 
-## Live Demo (Placeholders)
-- **Client App:** https://stock-predictor-demo.vercel.app
-- **Express API:** https://stock-predictor-server.onrender.com
-- **ML API:** https://stock-predictor-ml.onrender.com
+---
 
-## Architecture
-```mermaid
-graph TD
-    Client[Vite + React Client<br>Vercel] -->|REST API| Server[Express Server<br>Render]
-    Client -->|REST API| ML[FastAPI ML Service<br>Render]
-    Server -->|Mongoose| MongoDB[(MongoDB Atlas)]
-    ML -->|yfinance| YahooFinance[(Yahoo Finance)]
+## ✨ Features
+
+- 🔍 Search any NIFTY 50 stock (e.g. `RELIANCE.NS`, `TCS.NS`, `INFY.NS`)
+- 📊 Interactive chart: actual price, predicted price, SMA20 and SMA50
+- 🤖 Next-day close price prediction using Linear Regression
+- 🔐 User authentication (register / login / logout) with JWT in httpOnly cookies
+- ⭐ Personal watchlist (add, remove, one-click load of chart)
+- 🆚 Compare up to 3 stocks as % change from the first day
+- 📥 Export data to CSV (single stock and compare view)
+- 🌙 Light / dark theme and responsive layout
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React (Vite), Recharts, Axios |
+| Backend | Node.js, Express, JWT |
+| Database | MongoDB Atlas |
+| ML Service | Python, FastAPI, scikit-learn, pandas, yfinance |
+| Deployment | Vercel |
+
+---
+
+## 📁 Project Structure
+
+```
+stock-predictor/
+├── client/        # React + Vite frontend
+├── server/        # Express API (auth, watchlist, ML proxy)
+├── ml-service/    # FastAPI service (data fetch, indicators, prediction)
+├── vercel.json    # Multi-service deployment config
+└── README.md
 ```
 
-## Features
-- Search any NIFTY 50 stock and view historical actual vs predicted prices.
-- Dynamic Next-Day Predicted Price with Model Accuracy (MAE, RMSE, R²).
-- Personal Watchlist for quick access.
-- Compare multiple stocks on a single chart (% change).
-- Export data to CSV.
+---
 
-## Tech Stack
-- **Frontend:** React, Vite, Recharts, Axios
-- **Backend:** Node.js, Express, MongoDB
-- **ML Service:** Python, FastAPI, Scikit-learn (Linear Regression), Pandas, yfinance
+## 🏗️ How It Works
 
-## Environment Variables
-### Server (Node)
-| Variable | Description |
-|---|---|
-| PORT | Port to run on (e.g., 5000) |
-| MONGO_URI | MongoDB Atlas connection string |
-| JWT_SECRET | Secret string for signing cookies |
-| CORS_ORIGIN | URL of the client app (e.g., https://client.vercel.app) |
-| NODE_ENV | Set to 'production' for deployments |
+```
+Browser (React)  →  Express API (/api)  →  FastAPI ML Service  →  Yahoo Finance
+                          ↓
+                    MongoDB Atlas
+              (users, watchlist)
+```
 
-### ML Service (Python)
-| Variable | Description |
-|---|---|
-| PORT | Port (provided by Render) |
-| CLIENT_URL | URL of the client app for CORS |
+1. The client calls the Express server.
+2. Express handles auth and watchlist (MongoDB) and forwards stock requests to the ML service.
+3. The ML service fetches data with yfinance, computes indicators (SMA20, SMA50) and returns actual vs predicted prices.
 
-### Client (React)
-| Variable | Description |
-|---|---|
-| VITE_API_URL | Express API URL |
-| VITE_ML_URL | FastAPI ML Service URL |
+---
 
-## Screenshots
-*(Add screenshots of your dashboard here!)*
+## 🚀 Run Locally
+
+### Prerequisites
+
+- Node.js 18+
+- Python 3.10+
+- A MongoDB Atlas cluster (with your IP whitelisted)
+
+### 1. Clone
+
+```bash
+git clone https://github.com/shivkumarbarpete-byte/stock-predictor.git
+cd stock-predictor
+```
+
+### 2. ML Service (Terminal 1)
+
+```bash
+cd ml-service
+python -m venv venv
+# Windows
+venv\Scripts\activate
+# macOS / Linux
+source venv/bin/activate
+
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
+
+Check: http://127.0.0.1:8000/docs
+
+### 3. Backend (Terminal 2)
+
+```bash
+cd server
+npm install
+npm run dev
+```
+
+Create `server/.env`:
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_long_random_secret
+ML_SERVICE_URL=http://127.0.0.1:8000
+CORS_ORIGIN=http://localhost:5173
+```
+
+### 4. Frontend (Terminal 3)
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+Open http://localhost:5173
+
+---
+
+## 🔌 API Overview
+
+### ML Service (FastAPI)
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /health` | Service health check |
+| `GET /quote/{symbol}` | Latest quote for a symbol |
+| `GET /history/{symbol}` | Historical data with actual, predicted, SMA20, SMA50 |
+| `GET /predict/{symbol}` | Next-day close price prediction |
+
+> Use the `.NS` suffix for NSE stocks, e.g. `RELIANCE.NS`.
+
+### Express API
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /api/auth/register` | Create account |
+| `POST /api/auth/login` | Login (sets httpOnly cookie) |
+| `POST /api/auth/logout` | Logout |
+| `GET /api/auth/me` | Current user |
+| `GET /api/watchlist` | Get watchlist |
+| `POST /api/watchlist` | Add stock |
+| `DELETE /api/watchlist/:symbol` | Remove stock |
+
+---
+
+## 🔐 Environment Variables
+
+| Variable | Used In | Purpose |
+|----------|---------|---------|
+| `PORT` | server | Express port |
+| `MONGO_URI` | server | MongoDB connection string |
+| `JWT_SECRET` | server | Secret for signing tokens |
+| `ML_SERVICE_URL` | server | URL of the FastAPI service |
+| `CORS_ORIGIN` | server | Allowed frontend origin |
+| `VITE_API_URL` | client | API base URL (`/api` in production) |
+
+Never commit `.env` files. Use `.env.example` as a template.
+
+---
+
+## ⚠️ Disclaimer
+
+This project is for **educational purposes only**. Predictions are generated by a simple Linear Regression model and must **not** be treated as financial advice.
+
+---
+
+## 👨‍💻 Author
+
+**Shiv Kumar**
+MCA, IIIT Bhopal
+GitHub: [@shivkumarbarpete-byte](https://github.com/shivkumarbarpete-byte)

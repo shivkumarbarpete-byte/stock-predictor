@@ -13,12 +13,23 @@
       "root": "server",
       "framework": "express",
       "bindings": [
-        { "type": "service", "service": "ml-service", "format": "url", "env": "ML_SERVICE_URL" }
+        {
+          "type": "service",
+          "service": "ml-service",
+          "format": "url",
+          "env": "ML_SERVICE_URL"
+        }
       ]
     }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": { "service": "server" } },
-    { "source": "/(.*)", "destination": { "service": "client" } }
+    {
+      "source": "/api/:path*",
+      "destination": { "service": "server" }
+    },
+    {
+      "source": "/:path*",
+      "destination": { "service": "client" }
+    }
   ]
 }

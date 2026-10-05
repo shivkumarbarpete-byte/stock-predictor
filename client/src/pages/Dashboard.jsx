@@ -24,7 +24,7 @@ function Dashboard() {
     const fetchWatchlist = async () => {
       try {
         const res = await api.get('/watchlist');
-        setWatchlist(res.data.watchlist);
+        setWatchlist(res.data.watchlist ?? []);
       } catch (err) {
         toast.error('Could not load watchlist');
       }
@@ -45,7 +45,7 @@ function Dashboard() {
         mlApi.get(`/predict/${formattedSym}`),
         mlApi.get(`/quote/${formattedSym}`)
       ]);
-      setChartData(histRes.data.data);
+      setChartData(histRes.data.data ?? []);
       setPredictionData(predRes.data);
       setQuoteData(quoteRes.data);
       toast.success(`Loaded ${formattedSym}`);

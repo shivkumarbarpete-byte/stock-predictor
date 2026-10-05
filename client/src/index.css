@@ -20,6 +20,25 @@
   color-scheme: light;
 }
 
+/* ---------- Dark mode tokens ---------- */
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --text: #94a3b8;
+  --text-strong: #f1f5f9;
+  --muted: #475569;
+  --border: #334155;
+
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+
+  color-scheme: dark;
+}
+
 /* ---------- Reset ---------- */
 *,
 *::before,

@@ -1,56 +1,240 @@
+/* ==========================================================================
+   Dashboard Page Shell
+   ========================================================================== */
 .dashboard-page {
   display: flex;
   flex-direction: column;
+  gap: 1.5rem;
   height: 100%;
 }
 
+/* ==========================================================================
+   Market Overview
+   ========================================================================== */
+.market-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Index cards row */
+.market-indices-row {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.market-index-card {
+  min-width: 160px;
+  flex: 1;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.index-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 0;
+}
+
+.index-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+.market-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.market-change.up   { color: var(--success); }
+.market-change.down { color: var(--danger);  }
+
+.refresh-btn {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Movers row */
+.movers-row {
+  display: flex;
+  gap: 0.875rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.movers-group {
+  flex: 1;
+  min-width: 200px;
+  padding: 1rem 1.25rem;
+}
+
+.movers-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.75rem;
+}
+
+.mover-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.83rem;
+}
+.mover-item:last-child { border-bottom: none; }
+
+.mover-sym {
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mover-price {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.overview-timestamp {
+  font-size: 0.7rem;
+  align-self: flex-end;
+  margin-top: auto;
+}
+
+/* ==========================================================================
+   Dashboard body layout (main + sidebar)
+   ========================================================================== */
 .dashboard-content {
   display: flex;
-  gap: 2rem;
-  height: 100%;
+  gap: 1.5rem;
+  flex: 1;
+  min-height: 0;
 }
 
 .dashboard-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
   min-width: 0;
 }
 
 .dashboard-sidebar {
-  width: 320px;
+  width: 300px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
 }
 
-/* Empty State / Search */
+/* ==========================================================================
+   Empty / Search State
+   ========================================================================== */
 .empty-state {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: 3.5rem 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
+.empty-state-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+.empty-state h2 { margin: 0; }
 
 .search-form-large {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   width: 100%;
-  max-width: 500px;
+  max-width: 480px;
 }
-
 .large-input {
   flex: 1;
-  padding: 0.75rem 1rem;
-  font-size: 1.1rem;
+  font-size: 1rem;
+  padding: 10px 14px;
 }
 
-/* Quick Picks */
+/* ==========================================================================
+   Stock header row (when data is loaded)
+   ========================================================================== */
+.stock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.stock-header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+.stock-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.stock-exchange-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--primary-light);
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.stock-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.inline-search-form {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+.inline-search-input {
+  width: 160px;
+  font-size: 0.85rem;
+  padding: 6px 10px;
+}
+
+/* ==========================================================================
+   Quick Picks
+   ========================================================================== */
+.quick-picks { text-align: center; }
 .quick-picks h4 {
   margin-bottom: 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
 }
 .chips {
   display: flex;
@@ -59,184 +243,196 @@
   justify-content: center;
 }
 .chip {
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.875rem;
+  padding: 5px 13px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+.chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
 }
 .chip.active {
-  background-color: var(--primary);
-  color: white;
+  background: var(--primary);
+  color: #fff;
   border-color: var(--primary);
 }
 
-/* Summary Cards */
+/* ==========================================================================
+   Summary Cards
+   ========================================================================== */
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
-}
-
-.summary-card {
-  padding: 1.5rem;
-}
-
-.summary-card h3 {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-}
-
-.price-info {
-  display: flex;
-  align-items: center;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
 }
-
-.current-price {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.change {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-
-.text-success { color: var(--success); }
-.text-danger { color: var(--danger); }
-.text-muted { color: var(--text-secondary); }
-
-.badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
+.summary-card { padding: 1.25rem 1.5rem; }
+.summary-card h3 {
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
 }
-.badge-bullish {
-  background-color: rgba(22, 163, 74, 0.1);
-  color: var(--success);
+.price-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
-.badge-bearish {
-  background-color: rgba(220, 38, 38, 0.1);
-  color: var(--danger);
+.current-price {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+}
+.change {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 600;
+  font-size: 0.875rem;
 }
 
-/* Chart */
+/* ==========================================================================
+   Chart Card
+   ========================================================================== */
 .chart-card {
   flex: 1;
-  min-height: 400px;
+  min-height: 420px;
   display: flex;
   flex-direction: column;
+  padding: 1.25rem;
 }
-
 .chart-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
-
 .chart-controls {
   display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
   align-items: center;
+  flex-wrap: wrap;
 }
-
 .toggle-chips, .range-buttons {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.35rem;
+  flex-wrap: wrap;
 }
 
-/* Watchlist Panel */
+/* ==========================================================================
+   Watchlist Panel
+   ========================================================================== */
 .watchlist-panel {
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding: 0;
 }
-
-.watchlist-panel h2 {
-  margin-bottom: 1rem;
-  font-size: 1.125rem;
+.watchlist-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem 0.75rem;
+  border-bottom: 1px solid var(--border-color);
 }
-
+.watchlist-panel-header h2 {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
 .watchlist-list {
   list-style: none;
   overflow-y: auto;
   flex: 1;
+  padding: 0;
+  margin: 0;
 }
-
 .watchlist-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem;
+  padding: 0.7rem 1.25rem;
   border-bottom: 1px solid var(--border-color);
-  transition: background-color 0.2s;
+  transition: background 0.15s;
+  cursor: pointer;
 }
-
-.watchlist-item:hover {
-  background-color: var(--bg-primary);
-}
-
+.watchlist-item:hover { background: var(--bg-primary); }
+.watchlist-item:last-child { border-bottom: none; }
 .watchlist-item .symbol {
   font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-primary);
   flex: 1;
 }
-
 .quote-mini {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  margin-right: 1rem;
+  margin-right: 0.75rem;
 }
-
 .quote-mini .price {
+  font-size: 0.83rem;
   font-weight: 600;
+  color: var(--text-primary);
 }
-
 .quote-mini .change {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
+}
+.watchlist-empty {
+  padding: 2rem 1.25rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.6;
 }
 
-/* Skeleton */
+.btn-danger-hover {
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  padding: 4px;
+  border-radius: 4px;
+}
+.btn-danger-hover:hover {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+/* ==========================================================================
+   Skeleton / Loading
+   ========================================================================== */
 .skeleton-container {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
+.skeleton-summary { height: 90px; }
+.skeleton-chart   { height: 420px; }
 
-.skeleton {
-  background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--border-color) 50%, var(--bg-secondary) 75%);
-  background-size: 200% 100%;
-  animation: loading 1.5s infinite;
-  border-radius: var(--radius);
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (max-width: 1100px) {
+  .dashboard-content  { flex-direction: column; }
+  .dashboard-sidebar  { width: 100%; }
 }
-
-.skeleton-card { height: 100px; }
-.skeleton-chart { height: 400px; }
-
-@keyframes loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+@media (max-width: 768px) {
+  .chart-header       { flex-direction: column; align-items: flex-start; }
+  .stock-header       { flex-direction: column; align-items: flex-start; }
+  .market-index-card  { min-width: 130px; }
 }
-
-@media (max-width: 1024px) {
-  .dashboard-content {
-    flex-direction: column;
-  }
-  .dashboard-sidebar {
-    width: 100%;
-  }
-  .chart-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
+@media (max-width: 480px) {
+  .inline-search-form { display: none; }
+  .market-indices-row { gap: 0.5rem; }
+  .movers-row         { flex-direction: column; }
 }

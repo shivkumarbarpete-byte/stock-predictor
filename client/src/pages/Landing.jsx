@@ -27,7 +27,7 @@ function Landing() {
         <div className="hero">
           <h1 className="hero-title">Predict NIFTY 50 Stocks with Machine Learning</h1>
           <p className="hero-subtitle">
-            A fast, modern web app built for developers and traders. 
+            A fast, modern web app built for developers and traders.
             Analyze trends, compare stocks, and view next-day price predictions powered by ML.
           </p>
           <div className="hero-cta">

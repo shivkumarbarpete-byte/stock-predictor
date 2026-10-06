@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import watchlistRoutes from './routes/watchlistRoutes.js';
+import portfolioRoutes from './routes/portfolioRoutes.js';
 import mlRoutes from './routes/ml.js';
 
 dotenv.config();
@@ -93,6 +94,7 @@ app.use(async (_req, res, next) => {
 // Keep the /api prefix because Vercel preserves the request path.
 app.use('/api/auth', authRoutes);
 app.use('/api/watchlist', watchlistRoutes);
+app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/ml', mlRoutes);
 
 // Local development only.

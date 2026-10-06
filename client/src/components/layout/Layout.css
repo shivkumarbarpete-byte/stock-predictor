@@ -159,9 +159,14 @@
   min-width: 0;
 }
 
+.topbar-search-container {
+  position: relative;
+  width: 320px;
+}
+
 .topbar-search {
   position: relative;
-  width: 280px;
+  width: 100%;
 }
 .topbar-search input {
   width: 100%;
@@ -179,6 +184,86 @@
   transform: translateY(-50%);
   color: var(--muted);
   pointer-events: none;
+}
+
+.search-autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  max-height: 360px;
+  overflow-y: auto;
+  z-index: 250;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+}
+
+.autocomplete-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-primary);
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.autocomplete-item:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.ac-icon {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.ac-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.ac-symbol {
+  font-weight: 600;
+  font-size: 0.82rem;
+  line-height: 1.2;
+}
+
+.ac-name {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ac-badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 99px;
+  background: var(--bg-primary);
+  color: var(--muted);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.ac-no-results {
+  padding: 12px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
 }
 
 /* Market status pill */

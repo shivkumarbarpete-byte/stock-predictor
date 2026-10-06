@@ -2,12 +2,12 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Search, Moon, Sun, Bell, Menu,
-  LogOut, User, ChevronDown,
+  LogOut, User, ChevronDown, TrendingUp,
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth }  from '../../context/AuthContext';
+import { searchNifty50 } from '../../constants/nifty50';
 
-/* Derive initials from a name string */
 function getInitials(name) {
   if (!name) return '?';
   const parts = name.trim().split(/\s+/);
@@ -16,12 +16,10 @@ function getInitials(name) {
     : name.slice(0, 2).toUpperCase();
 }
 
-/* Simple Indian-market open/closed detector (IST, Mon–Fri 09:15–15:30) */
 function getMarketStatus() {
   const now = new Date();
-  // Convert to IST (UTC+5:30)
   const ist = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-  const day = ist.getDay(); // 0=Sun, 6=Sat
+  const day = ist.getDay();
   const h = ist.getHours();
   const m = ist.getMinutes();
   const mins = h * 60 + m;
@@ -34,21 +32,58 @@ export default function Topbar({ onMenuToggle }) {
   const { user, logout }       = useAuth();
   const navigate               = useNavigate();
 
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [searchVal,    setSearchVal]    = useState('');
-  const dropdownRef = useRef(null);
-  const isOpen      = getMarketStatus();
+  const [dropdownOpen, setDropdownOpen]   = useState(false);
+  const [searchVal,    setSearchVal]      = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showResults,  setShowResults]    = useState(false);
 
-  /* Close dropdown on outside click */
+  const dropdownRef  = useRef(null);
+  const searchBoxRef = useRef(null);
+  const isOpen       = getMarketStatus();
+
+  /* Close dropdowns on outside click */
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
       }
+      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target)) {
+        setShowResults(false);
+      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  /* Handle typing in search input */
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setSearchVal(val);
+    if (val.trim()) {
+      const results = searchNifty50(val);
+      setSearchResults(results.slice(0, 8)); // Top 8 matches
+      setShowResults(true);
+    } else {
+      setSearchResults([]);
+      setShowResults(false);
+    }
+  };
+
+  const handleSelectSymbol = (symbol) => {
+    setShowResults(false);
+    setSearchVal('');
+    navigate(`/prediction?symbol=${symbol}`);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const sym = searchVal.trim().toUpperCase();
+    if (!sym) return;
+    const finalSym = sym.endsWith('.NS') ? sym : `${sym}.NS`;
+    setShowResults(false);
+    setSearchVal('');
+    navigate(`/prediction?symbol=${finalSym}`);
+  };
 
   const handleLogout = async () => {
     setDropdownOpen(false);
@@ -56,18 +91,9 @@ export default function Topbar({ onMenuToggle }) {
     navigate('/login');
   };
 
-  /* Navigate to dashboard with search query via URL state */
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const sym = searchVal.trim().toUpperCase();
-    if (!sym) return;
-    navigate('/dashboard', { state: { searchSymbol: sym } });
-    setSearchVal('');
-  };
-
   return (
     <header className="topbar">
-      {/* Left — hamburger (mobile) + search + market status */}
+      {/* Left — hamburger + search + market status */}
       <div className="topbar-left">
         <button
           className="icon-btn menu-toggle"
@@ -77,16 +103,48 @@ export default function Topbar({ onMenuToggle }) {
           <Menu size={20} />
         </button>
 
-        <form className="topbar-search" onSubmit={handleSearch}>
-          <Search size={16} className="search-icon" />
-          <input
-            type="text"
-            value={searchVal}
-            onChange={(e) => setSearchVal(e.target.value)}
-            placeholder="Search stocks… e.g. RELIANCE.NS"
-            aria-label="Search stocks"
-          />
-        </form>
+        <div className="topbar-search-container" ref={searchBoxRef}>
+          <form className="topbar-search" onSubmit={handleSearchSubmit}>
+            <Search size={16} className="search-icon" />
+            <input
+              type="text"
+              value={searchVal}
+              onChange={handleInputChange}
+              onFocus={() => {
+                if (searchVal.trim()) setShowResults(true);
+              }}
+              placeholder="Search NIFTY 50 stocks…"
+              aria-label="Search stocks"
+            />
+          </form>
+
+          {/* Autocomplete Dropdown */}
+          {showResults && searchResults.length > 0 && (
+            <div className="search-autocomplete-dropdown">
+              {searchResults.map((item) => (
+                <button
+                  key={item.symbol}
+                  className="autocomplete-item"
+                  onClick={() => handleSelectSymbol(item.symbol)}
+                  type="button"
+                >
+                  <TrendingUp size={14} className="ac-icon" />
+                  <div className="ac-details">
+                    <span className="ac-symbol">{item.symbol}</span>
+                    <span className="ac-name">{item.name}</span>
+                  </div>
+                  <span className="ac-badge">{item.sector}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {showResults && searchVal.trim() && searchResults.length === 0 && (
+            <div className="search-autocomplete-dropdown empty">
+              <span className="ac-no-results">No matching stock found</span>
+            </div>
+          )}
+        </div>
 
         <div className={`market-status ${isOpen ? '' : 'closed'}`}>
           <span className="market-status-dot" />
@@ -106,8 +164,8 @@ export default function Topbar({ onMenuToggle }) {
           {theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
         </button>
 
-        {/* Notification icon (placeholder — Phase 2) */}
-        <button className="icon-btn" aria-label="Notifications" title="Notifications (coming soon)">
+        {/* Notifications button */}
+        <button className="icon-btn" aria-label="Notifications" title="Notifications">
           <Bell size={19} />
         </button>
 
@@ -132,7 +190,6 @@ export default function Topbar({ onMenuToggle }) {
 
           {dropdownOpen && (
             <div className="dropdown-menu" role="menu">
-              {/* User info header */}
               <div className="dropdown-header">
                 <div className="dh-name">{user?.name}</div>
                 <div className="dh-email">{user?.email}</div>

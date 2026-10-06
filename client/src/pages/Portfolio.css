@@ -1,0 +1,155 @@
+.portfolio-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.portfolio-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.summary-card.bullish-border {
+  border-top: 3px solid var(--success);
+}
+.summary-card.bearish-border {
+  border-top: 3px solid var(--danger);
+}
+
+.sc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.sc-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.sc-subtext {
+  font-size: 0.75rem;
+}
+
+.portfolio-content-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.add-holding-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.holding-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group-rel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.portfolio-autocomplete {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pac-item {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+  cursor: pointer;
+}
+.pac-item:hover {
+  background: var(--primary-light);
+}
+
+.holdings-table-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.empty-holdings {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  gap: 8px;
+}
+
+.portfolio-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.portfolio-table th,
+.portfolio-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.portfolio-table th {
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.btn-danger-icon {
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn-danger-icon:hover {
+  color: var(--danger);
+  background: var(--danger-light);
+}
+
+@media (max-width: 900px) {
+  .portfolio-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .portfolio-content-grid {
+    grid-template-columns: 1fr;
+  }
+}

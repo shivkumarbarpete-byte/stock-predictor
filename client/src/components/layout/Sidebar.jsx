@@ -21,23 +21,23 @@ const NAV_SECTIONS = [
   {
     label: 'Markets',
     items: [
-      { to: '/markets',   icon: TrendingUp,         label: 'Markets',    comingSoon: false },
-      { to: '/stocks',    icon: BarChart2,           label: 'Stocks',     comingSoon: false },
-      { to: '/screener',  icon: SlidersHorizontal,   label: 'Screener',   comingSoon: true  },
+      { to: '/markets',   icon: TrendingUp,         label: 'Markets'  },
+      { to: '/stocks',    icon: BarChart2,           label: 'Stocks'   },
+      { to: '/screener',  icon: SlidersHorizontal,   label: 'Screener' },
     ],
   },
   {
     label: 'My Portfolio',
     items: [
-      { to: '/watchlist',  icon: BookMarked,           label: 'Watchlist'  },
-      { to: '/portfolio',  icon: BriefcaseBusiness,    label: 'Portfolio',  comingSoon: true },
+      { to: '/watchlist',  icon: BookMarked,           label: 'Watchlist' },
+      { to: '/portfolio',  icon: BriefcaseBusiness,    label: 'Portfolio' },
     ],
   },
   {
     label: 'Analysis',
     items: [
-      { to: '/compare',     icon: GitCompareArrows, label: 'Compare'    },
-      { to: '/predictions', icon: BrainCircuit,     label: 'Predictions' },
+      { to: '/compare',     icon: GitCompareArrows, label: 'Compare'     },
+      { to: '/prediction',  icon: BrainCircuit,     label: 'Predictions' },
     ],
   },
 ];

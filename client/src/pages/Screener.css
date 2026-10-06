@@ -1,0 +1,138 @@
+.screener-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.screener-filters-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.filter-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-item label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.input-with-icon {
+  position: relative;
+  width: 100%;
+}
+.input-with-icon input {
+  padding-left: 2rem;
+}
+.input-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+}
+
+.movement-pills {
+  display: flex;
+  gap: 4px;
+}
+
+.pill {
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pill:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+.pill.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.filter-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border-color);
+  padding-top: 0.75rem;
+  font-size: 0.82rem;
+}
+
+.screener-table-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.screener-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.screener-table th,
+.screener-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.screener-table th {
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.screener-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+.screener-table th.sortable:hover {
+  color: var(--primary);
+}
+
+.sort-icon-idle {
+  opacity: 0.4;
+  margin-left: 4px;
+}
+.sort-icon-active {
+  color: var(--primary);
+  margin-left: 4px;
+}
+
+.clickable-row {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.clickable-row:hover td {
+  background: var(--primary-light);
+}
+
+.empty-table-cell {
+  text-align: center;
+  padding: 3rem;
+  color: var(--muted);
+}

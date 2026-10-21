@@ -1,0 +1,27 @@
+{
+  "test_rows": 2380,
+  "always_up_directional_accuracy": 46.5,
+  "models": [
+    {
+      "model": "Linear Regression",
+      "mae": 18.69,
+      "rmse": 30.59,
+      "r2": -0.0083,
+      "directional_accuracy": 47.0
+    },
+    {
+      "model": "Random Forest",
+      "mae": 18.71,
+      "rmse": 30.6,
+      "r2": -0.0132,
+      "directional_accuracy": 47.3
+    },
+    {
+      "model": "Naive (kal=aaj)",
+      "mae": 18.56,
+      "rmse": 30.48,
+      "r2": -0.0014,
+      "directional_accuracy": null
+    }
+  ]
+}

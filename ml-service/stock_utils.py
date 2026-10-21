@@ -5,6 +5,7 @@ Data fetch + return-based prediction (v3, scale-free features).
 FastAPI (main.py) ise import karta hai.
 """
 
+import json
 import time
 from pathlib import Path
 
@@ -16,7 +17,12 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from features import FEATURES, TARGET, build_features, add_target
 
-MODEL_PATH = Path(__file__).parent / "return_model.pkl"
+BASE_DIR = Path(__file__).parent
+MODEL_PATHS = {
+    "linear": BASE_DIR / "return_model.pkl",
+    "rf": BASE_DIR / "random_forest_model.pkl",
+}
+METRICS_PATH = BASE_DIR / "metrics.json"
 EVAL_DAYS = 120  # metrics kitne recent trading days par nikalne hain
 
 # -----------------------------------------------------------------------------
@@ -74,19 +80,29 @@ def _prepare(symbol: str, period: str = "2y") -> pd.DataFrame:
 # 3. MODEL LOADING
 # -----------------------------------------------------------------------------
 
-_model = None
+_models = {}
 
 
-def load_model():
-    global _model
-    if _model is None:
-        if not MODEL_PATH.exists():
+def load_model(name: str = "linear"):
+    """name: 'linear' ya 'rf'. Ek baar load hone ke baad memory mein cache rehta hai."""
+    if name not in MODEL_PATHS:
+        raise ValueError(f"Unknown model '{name}'. Options: {list(MODEL_PATHS)}")
+    if name not in _models:
+        path = MODEL_PATHS[name]
+        if not path.exists():
             raise FileNotFoundError(
-                f"Model file nahi mili: {MODEL_PATH}\nPehle 'python train_model.py' chalao."
+                f"Model file nahi mili: {path}\nPehle 'python train_model.py' chalao."
             )
-        bundle = joblib.load(MODEL_PATH)
-        _model = bundle["model"]
-    return _model
+        _models[name] = joblib.load(path)["model"]
+    return _models[name]
+
+
+def load_metrics() -> dict:
+    """train_model.py ne jo metrics.json banayi thi (test set ke results)."""
+    if not METRICS_PATH.exists():
+        raise FileNotFoundError("metrics.json nahi mili. Pehle 'python train_model.py' chalao.")
+    with open(METRICS_PATH) as f:
+        return json.load(f)
 
 
 # -----------------------------------------------------------------------------
@@ -115,10 +131,10 @@ def _compute_metrics(df: pd.DataFrame, model) -> dict:
     }
 
 
-def predict_next_close(symbol: str) -> dict:
+def predict_next_close(symbol: str, model_name: str = "linear") -> dict:
     df = _prepare(symbol)
     latest = df.iloc[-1]
-    model = load_model()
+    model = load_model(model_name)
 
     pred_return = float(model.predict(df[FEATURES].iloc[[-1]])[0])
     last_close = float(latest["Close"])
@@ -127,6 +143,7 @@ def predict_next_close(symbol: str) -> dict:
 
     return {
         "symbol": symbol.upper(),
+        "model": model_name,
         "last_date": latest["Date"].strftime("%Y-%m-%d"),
         "last_close": round(last_close, 2),
         "predicted_close": round(predicted, 2),
@@ -146,9 +163,9 @@ def predict_next_close(symbol: str) -> dict:
 # 5. HISTORY + PREDICTED LINE (React chart ke liye)
 # -----------------------------------------------------------------------------
 
-def get_history_with_predictions(symbol: str, days: int = 120) -> list[dict]:
+def get_history_with_predictions(symbol: str, days: int = 120, model_name: str = "linear") -> list[dict]:
     df = _prepare(symbol)
-    model = load_model()
+    model = load_model(model_name)
 
     pred_return = model.predict(df[FEATURES])
     df["PredictedNext"] = df["Close"] * (1 + pred_return)

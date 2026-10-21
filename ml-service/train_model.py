@@ -1,112 +1,96 @@
 """
-Day 3: Train a Linear Regression model to predict next-day Close price
--------------------------------------------------------------------------
-Concept notes:
-- Target = tomorrow's Close price -> we create this by "shifting" the
-  Close column up by 1 row (shift(-1)).
-- Features = today's Close, SMA20, SMA50, EMA20
-- We do a TIME-ORDERED train/test split (NOT random shuffle) because
-  shuffling would let the model "see the future" during training,
-  which is a classic mistake called data leakage.
-- Metrics used:
-    - RMSE (Root Mean Squared Error): average prediction error, in Rupees.
-      Lower = better. Easy to explain to anyone: "on average we're off
-      by ~X rupees".
-    - R^2 score: how much of the price variation the model explains
-      (1.0 = perfect, 0 = no better than guessing the average).
+train_model.py
+--------------
+Multi-stock training, scale-free features, target = next-day return.
+Naive baseline (predicted return = 0) se comparison.
+
+Run: python train_model.py
 """
 
-import pandas as pd
-import numpy as np
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
 import joblib
-import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+
+from stock_utils import fetch_stock_data
+from features import FEATURES, TARGET, build_features, add_target
+
+SYMBOLS = [
+    "RELIANCE.NS", "TCS.NS", "INFY.NS", "HDFCBANK.NS", "ICICIBANK.NS",
+    "ITC.NS", "LT.NS", "SBIN.NS", "HINDUNILVR.NS", "BHARTIARTL.NS",
+]
+TEST_RATIO = 0.2
+MODEL_PATH = "return_model.pkl"
 
 
-FEATURES = ["Close", "SMA20", "SMA50", "EMA20"]
-TARGET = "Target_Close"
-
-
-def prepare_data(csv_path: str) -> pd.DataFrame:
-    df = pd.read_csv(csv_path, parse_dates=["Date"])
-
-    # Drop rows where SMA50/EMA20 are NaN (first ~49 rows, not enough history)
-    df = df.dropna(subset=FEATURES)
-
-    # Target = next day's Close price
-    df[TARGET] = df["Close"].shift(-1)
-
-    # Last row now has no "next day" -> drop it
-    df = df.dropna(subset=[TARGET])
-
-    df = df.reset_index(drop=True)
+def load_symbol(symbol: str) -> pd.DataFrame:
+    df = fetch_stock_data(symbol, period="5y")
+    df = build_features(df)
+    df = add_target(df)
+    df = df.dropna(subset=FEATURES + [TARGET]).reset_index(drop=True)
+    df["Symbol"] = symbol
     return df
 
 
-def train_test_split_by_time(df: pd.DataFrame, test_ratio: float = 0.2):
-    split_idx = int(len(df) * (1 - test_ratio))
-
-    train_df = df.iloc[:split_idx]
-    test_df = df.iloc[split_idx:]
-
-    print(f"Train rows: {len(train_df)} (up to {train_df['Date'].max().date()})")
-    print(f"Test rows : {len(test_df)} (from {test_df['Date'].min().date()} to {test_df['Date'].max().date()})")
-
-    return train_df, test_df
+def split_by_time(df: pd.DataFrame):
+    """Ek stock ke andar: pehle 80% train, aakhri 20% test."""
+    split_idx = int(len(df) * (1 - TEST_RATIO))
+    return df.iloc[:split_idx], df.iloc[split_idx:]
 
 
-def train_model(train_df: pd.DataFrame) -> LinearRegression:
-    X_train = train_df[FEATURES]
-    y_train = train_df[TARGET]
+def main():
+    train_parts, test_parts = [], []
 
+    for symbol in SYMBOLS:
+        try:
+            df = load_symbol(symbol)
+        except Exception as e:
+            print(f"[SKIP] {symbol}: {e}")
+            continue
+        train_df, test_df = split_by_time(df)
+        train_parts.append(train_df)
+        test_parts.append(test_df)
+        print(f"[OK] {symbol}: train={len(train_df)}, test={len(test_df)}")
+
+    train = pd.concat(train_parts, ignore_index=True)
+    test = pd.concat(test_parts, ignore_index=True)
+    print(f"\nTotal train rows: {len(train)} | test rows: {len(test)}")
+
+    # --- Train ---
     model = LinearRegression()
-    model.fit(X_train, y_train)
+    model.fit(train[FEATURES], train[TARGET])
 
-    return model
+    # --- Evaluate on test ---
+    y_true = test[TARGET].values
+    pred_ret = model.predict(test[FEATURES])
+    naive_ret = np.zeros_like(y_true)  # naive: kal = aaj, return = 0
 
+    close = test["Close"].values
+    actual_next = close * (1 + y_true)
+    model_next = close * (1 + pred_ret)
+    naive_next = close * (1 + naive_ret)
 
-def evaluate_model(model: LinearRegression, test_df: pd.DataFrame):
-    X_test = test_df[FEATURES]
-    y_test = test_df[TARGET]
+    mae_model = np.mean(np.abs(model_next - actual_next))
+    mae_naive = np.mean(np.abs(naive_next - actual_next))
 
-    predictions = model.predict(X_test)
+    print("\n=== TEST RESULTS (time-based split) ===")
+    print(f"MAE (Rs)  model: {mae_model:.2f} | naive: {mae_naive:.2f}")
+    print(f"R2 on return  model: {r2_score(y_true, pred_ret):.4f} | naive: {r2_score(y_true, naive_ret):.4f}")
 
-    rmse = np.sqrt(mean_squared_error(y_test, predictions))
-    r2 = r2_score(y_test, predictions)
+    dir_acc = np.mean(np.sign(pred_ret) == np.sign(y_true)) * 100
+    always_up = np.mean(y_true > 0) * 100
+    print(f"Directional accuracy  model: {dir_acc:.1f}% | always-UP: {always_up:.1f}%")
 
-    print(f"\nRMSE: Rs. {rmse:.2f}  (average prediction error)")
-    print(f"R^2 score: {r2:.4f}  (1.0 = perfect fit)")
+    if mae_model < mae_naive:
+        print("-> Model naive baseline se behtar hai.")
+    else:
+        print("-> Model naive baseline ko beat nahi kar paya (stock returns noisy hote hain).")
 
-    return predictions, y_test
-
-
-def plot_actual_vs_predicted(test_df: pd.DataFrame, y_test, predictions):
-    plt.figure(figsize=(10, 5))
-    plt.plot(test_df["Date"], y_test.values, label="Actual", linewidth=2)
-    plt.plot(test_df["Date"], predictions, label="Predicted", linewidth=2, linestyle="--")
-    plt.title("Actual vs Predicted Close Price (Test set)")
-    plt.xlabel("Date")
-    plt.ylabel("Price (Rs.)")
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig("actual_vs_predicted.png")
-    print("\nChart saved as actual_vs_predicted.png")
+    # --- Save ---
+    joblib.dump({"model": model, "features": FEATURES}, MODEL_PATH)
+    print(f"\nModel saved as {MODEL_PATH}")
 
 
 if __name__ == "__main__":
-    INPUT_CSV = "RELIANCE_data_with_indicators.csv"
-
-    data = prepare_data(INPUT_CSV)
-    print(f"Usable rows after cleaning: {len(data)}")
-
-    train_df, test_df = train_test_split_by_time(data)
-
-    model = train_model(train_df)
-    predictions, y_test = evaluate_model(model, test_df)
-
-    plot_actual_vs_predicted(test_df, y_test, predictions)
-
-    # Save the trained model so FastAPI can load it later
-    joblib.dump(model, "linear_regression_model.pkl")
-    print("Model saved as linear_regression_model.pkl")
+    main()

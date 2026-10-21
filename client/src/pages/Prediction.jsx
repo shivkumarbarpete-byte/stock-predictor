@@ -120,8 +120,9 @@ export default function Prediction() {
           <h1 className="page-title">
             <BrainCircuit size={26} className="title-icon" /> AI Stock Price Prediction
           </h1>
-          <p className="muted">
-            Linear Regression model trained on technical indicators (Close, SMA20, SMA50, EMA20).
+                <p className="muted">
+            Linear Regression model that predicts next-day return from scale-free features
+            (SMA20/Close, SMA50/Close, EMA20/Close, RSI14), trained on multiple NIFTY stocks.
           </p>
         </div>
 
@@ -216,7 +217,9 @@ export default function Prediction() {
             {/* Indicators Card */}
             <div className="card indicators-card">
               <h3><Layers size={18} /> Technical Indicators</h3>
-              <p className="muted text-small">Features used in regression model</p>
+                           <p className="muted text-small">
+                Price levels (the model uses their ratio to Close, plus RSI14)
+              </p>
               <div className="indicators-grid">
                 <div className="indicator-box">
                   <span className="ind-label">SMA 20</span>
@@ -233,24 +236,35 @@ export default function Prediction() {
               </div>
             </div>
 
-            {/* Model Metrics Card */}
+                 {/* Model Metrics Card */}
             <div className="card metrics-card">
               <h3><Activity size={18} /> Model Evaluation</h3>
-              <p className="muted text-small">Evaluated on test dataset</p>
+              <p className="muted text-small">
+                Evaluated on the last 120 trading days, compared with a naive
+                baseline (tomorrow's price = today's price)
+              </p>
               <div className="metrics-list">
                 <div className="metric-row">
                   <span>MAE (Mean Abs Error):</span>
                   <strong>₹{predictData?.metrics?.mae}</strong>
                 </div>
                 <div className="metric-row">
+                  <span>Naive baseline MAE:</span>
+                  <strong>₹{predictData?.metrics?.naive_mae}</strong>
+                </div>
+                <div className="metric-row">
                   <span>RMSE (Root Mean Sq):</span>
                   <strong>₹{predictData?.metrics?.rmse}</strong>
                 </div>
                 <div className="metric-row">
-                  <span>R² Score:</span>
+                  <span>R² Score (on returns):</span>
                   <strong>{predictData?.metrics?.r2}</strong>
                 </div>
-              </div>
+                <div className="metric-row">
+                  <span>Directional accuracy:</span>
+                  <strong>{predictData?.metrics?.directional_accuracy}%</strong>
+                </div>
+                      </div>
             </div>
           </div>
 

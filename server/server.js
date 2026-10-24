@@ -8,6 +8,7 @@ import authRoutes from './routes/authRoutes.js';
 import watchlistRoutes from './routes/watchlistRoutes.js';
 import portfolioRoutes from './routes/portfolioRoutes.js';
 import mlRoutes from './routes/ml.js';
+import tradeRoutes from './routes/tradeRoutes.js';
 
 dotenv.config();
 
@@ -95,6 +96,7 @@ app.use(async (_req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/watchlist', watchlistRoutes);
 app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/trade', tradeRoutes);
 app.use('/api/ml', mlRoutes);
 
 // Local development only.

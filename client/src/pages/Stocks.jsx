@@ -158,7 +158,13 @@ export default function Stocks() {
           {/* Header Bar */}
           <div className="card stock-detail-header-card">
             <div className="left">
-              <h2>{symbol}</h2>
+              <h2
+                className="clickable hover-underline"
+                onClick={() => navigate(`/stocks/${encodeURIComponent(symbol)}`)}
+                title="View full stock details & candlestick chart"
+              >
+                {symbol}
+              </h2>
               <span className="badge badge-neutral">NSE NIFTY 50</span>
             </div>
 

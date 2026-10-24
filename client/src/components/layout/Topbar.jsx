@@ -7,6 +7,7 @@ import {
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth }  from '../../context/AuthContext';
 import { searchNifty50 } from '../../constants/nifty50';
+import { getMarketStatus } from '../../utils/marketStatus';
 
 function getInitials(name) {
   if (!name) return '?';
@@ -16,15 +17,35 @@ function getInitials(name) {
     : name.slice(0, 2).toUpperCase();
 }
 
-function getMarketStatus() {
-  const now = new Date();
-  const ist = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-  const day = ist.getDay();
-  const h = ist.getHours();
-  const m = ist.getMinutes();
-  const mins = h * 60 + m;
-  if (day === 0 || day === 6) return false;
-  return mins >= 9 * 60 + 15 && mins < 15 * 60 + 30;
+function MarketStatusBadge() {
+  const [marketInfo, setMarketInfo] = useState(() => getMarketStatus());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setMarketInfo(getMarketStatus());
+    }, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const statusClass =
+    marketInfo.status === 'OPEN'
+      ? 'open'
+      : marketInfo.status === 'PRE-OPEN'
+      ? 'pre-open'
+      : 'closed';
+
+  const tooltipText = `${marketInfo.label} • ${marketInfo.nextChangeText}\nPrices from Yahoo Finance, may be delayed up to ~15 min`;
+
+  return (
+    <div
+      className={`market-status ${statusClass}`}
+      title={tooltipText}
+      aria-label={tooltipText}
+    >
+      <span className="market-status-dot" />
+      <span>{marketInfo.label}</span>
+    </div>
+  );
 }
 
 export default function Topbar({ onMenuToggle }) {
@@ -39,7 +60,6 @@ export default function Topbar({ onMenuToggle }) {
 
   const dropdownRef  = useRef(null);
   const searchBoxRef = useRef(null);
-  const isOpen       = getMarketStatus();
 
   /* Close dropdowns on outside click */
   useEffect(() => {
@@ -146,10 +166,7 @@ export default function Topbar({ onMenuToggle }) {
           )}
         </div>
 
-        <div className={`market-status ${isOpen ? '' : 'closed'}`}>
-          <span className="market-status-dot" />
-          {isOpen ? 'Market Open' : 'Market Closed'}
-        </div>
+        <MarketStatusBadge />
       </div>
 
       {/* Right — actions */}

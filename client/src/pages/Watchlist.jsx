@@ -1,14 +1,18 @@
-import { useState, useEffect } from 'react';
-import { BookMarked, Plus, Trash2, TrendingUp, RefreshCw, BarChart2 } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { BookMarked, Plus, Trash2, RefreshCw, BarChart2, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../services/api';
 import mlApi from '../services/mlApi';
 import MainChart from '../components/dashboard/MainChart';
 import SummaryCards from '../components/dashboard/SummaryCards';
 import { searchNifty50 } from '../constants/nifty50';
+import { usePolling } from '../hooks/usePolling';
+import { getMarketStatus } from '../utils/marketStatus';
 import './Watchlist.css';
 
 export default function WatchlistPage() {
+  const navigate = useNavigate();
   const [watchlist, setWatchlist]       = useState([]);
   const [selectedStock, setSelectedStock] = useState(null);
   const [inputVal, setInputVal]         = useState('');
@@ -21,45 +25,48 @@ export default function WatchlistPage() {
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [error, setError]               = useState(null);
 
-  useEffect(() => {
-    fetchWatchlist();
+  // Polling & price flash tracking
+  const [lastUpdated, setLastUpdated]   = useState(null);
+  const [flashingSymbols, setFlashingSymbols] = useState({});
+  const prevPricesRef = useRef({});
+
+  const marketStatus = getMarketStatus().status;
+  const pollInterval = marketStatus === 'OPEN' ? 30000 : 120000;
+
+  const triggerFlashes = useCallback((quotesMap) => {
+    const flashes = {};
+    Object.entries(quotesMap).forEach(([sym, q]) => {
+      if (!q || q.close === undefined) return;
+      const prev = prevPricesRef.current[sym];
+      if (prev !== undefined && prev !== q.close) {
+        flashes[sym] = q.close > prev ? 'flash-up' : 'flash-down';
+      }
+      prevPricesRef.current[sym] = q.close;
+    });
+
+    if (Object.keys(flashes).length > 0) {
+      setFlashingSymbols(flashes);
+      setTimeout(() => setFlashingSymbols({}), 1500);
+    }
   }, []);
 
-  const fetchWatchlist = async () => {
-    setLoadingList(true);
-    setError(null);
-    try {
-      const res = await api.get('/watchlist');
-      const list = res.data.watchlist || [];
-      setWatchlist(list);
-
-      if (list.length > 0) {
-        setSelectedStock(list[0]);
-        loadStockDetails(list[0]);
-        fetchWatchlistQuotes(list);
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to load watchlist');
-      toast.error('Could not fetch watchlist');
-    } finally {
-      setLoadingList(false);
-    }
-  };
-
-  const fetchWatchlistQuotes = async (symbols) => {
+  const fetchWatchlistQuotes = useCallback(async (symbols) => {
+    if (!symbols || symbols.length === 0) return {};
     const quotes = {};
-    for (const sym of symbols) {
-      try {
-        const qRes = await mlApi.get(`/quote/${sym}`);
-        quotes[sym] = qRes.data;
-      } catch {
-        // quiet fallback
-      }
-    }
-    setStockQuotes(quotes);
-  };
+    await Promise.allSettled(
+      symbols.map(async (sym) => {
+        try {
+          const qRes = await mlApi.get(`/quote/${sym}`);
+          quotes[sym] = qRes.data;
+        } catch {
+          // quiet fallback
+        }
+      })
+    );
+    return quotes;
+  }, []);
 
-  const loadStockDetails = async (sym) => {
+  const loadStockDetails = useCallback(async (sym) => {
     setSelectedStock(sym);
     setLoadingDetail(true);
     try {
@@ -76,6 +83,90 @@ export default function WatchlistPage() {
     } finally {
       setLoadingDetail(false);
     }
+  }, []);
+
+  const fetchWatchlist = useCallback(async () => {
+    setLoadingList(true);
+    setError(null);
+    try {
+      const res = await api.get('/watchlist');
+      const list = res.data.watchlist || [];
+      setWatchlist(list);
+
+      if (list.length > 0) {
+        const first = list[0];
+        setSelectedStock((prev) => prev || first);
+        loadStockDetails(first);
+        const quotes = await fetchWatchlistQuotes(list);
+        triggerFlashes(quotes);
+        setStockQuotes(quotes);
+        setLastUpdated(new Date());
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to load watchlist');
+      toast.error('Could not fetch watchlist');
+    } finally {
+      setLoadingList(false);
+    }
+  }, [fetchWatchlistQuotes, triggerFlashes, loadStockDetails]);
+
+  useEffect(() => {
+    let ignore = false;
+    const init = async () => {
+      try {
+        const res = await api.get('/watchlist');
+        const list = res.data.watchlist || [];
+        if (!ignore) {
+          setWatchlist(list);
+          if (list.length > 0) {
+            const first = list[0];
+            setSelectedStock(first);
+            loadStockDetails(first);
+            const quotes = await fetchWatchlistQuotes(list);
+            triggerFlashes(quotes);
+            setStockQuotes(quotes);
+            setLastUpdated(new Date());
+          }
+        }
+      } catch (err) {
+        if (!ignore) {
+          setError(err.message || 'Failed to load watchlist');
+        }
+      } finally {
+        if (!ignore) {
+          setLoadingList(false);
+        }
+      }
+    };
+    init();
+    return () => {
+      ignore = true;
+    };
+  }, [fetchWatchlistQuotes, loadStockDetails, triggerFlashes]);
+
+  // Polling quotes for watchlist
+  const pollQuotes = useCallback(async () => {
+    if (watchlist.length === 0) return;
+    try {
+      const quotes = await fetchWatchlistQuotes(watchlist);
+      triggerFlashes(quotes);
+      setStockQuotes(quotes);
+
+      // If selected stock quote updated, update quoteData as well
+      if (selectedStock && quotes[selectedStock]) {
+        setQuoteData(quotes[selectedStock]);
+      }
+      setLastUpdated(new Date());
+    } catch {
+      // quiet poll error
+    }
+  }, [watchlist, fetchWatchlistQuotes, triggerFlashes, selectedStock]);
+
+  usePolling(pollQuotes, pollInterval, { enabled: watchlist.length > 0 });
+
+  const handleManualRefresh = async () => {
+    await pollQuotes();
+    toast.success('Watchlist prices refreshed');
   };
 
   const handleAddStock = async (symToAdd) => {
@@ -92,7 +183,10 @@ export default function WatchlistPage() {
       toast.success(`Added ${formatted} to watchlist`);
       setSelectedStock(formatted);
       loadStockDetails(formatted);
-      fetchWatchlistQuotes(updated);
+      const quotes = await fetchWatchlistQuotes(updated);
+      triggerFlashes(quotes);
+      setStockQuotes(quotes);
+      setLastUpdated(new Date());
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to add stock');
     }
@@ -132,6 +226,16 @@ export default function WatchlistPage() {
           <p className="muted">
             Track your favorite NIFTY 50 stocks with live quotes and AI predictions.
           </p>
+        </div>
+        <div className="page-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {lastUpdated && (
+            <span className="last-updated-text" style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>
+              Last updated {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+          <button className="btn-outline" onClick={handleManualRefresh} disabled={watchlist.length === 0}>
+            <RefreshCw size={14} /> Refresh
+          </button>
         </div>
       </div>
 
@@ -199,6 +303,7 @@ export default function WatchlistPage() {
                 const quote = stockQuotes[sym];
                 const isSelected = selectedStock === sym;
                 const isPos = quote ? quote.change >= 0 : true;
+                const flashClass = flashingSymbols[sym] || '';
 
                 return (
                   <div
@@ -207,9 +312,19 @@ export default function WatchlistPage() {
                     onClick={() => loadStockDetails(sym)}
                   >
                     <div className="item-info">
-                      <span className="item-symbol">{sym}</span>
+                      <span
+                        className="item-symbol"
+                        title="Click to view candlestick chart"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/stocks/${encodeURIComponent(sym)}`);
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {sym}
+                      </span>
                       {quote && (
-                        <span className="item-price">₹{quote.close}</span>
+                        <span className={`item-price ${flashClass}`}>₹{quote.close}</span>
                       )}
                     </div>
 
@@ -252,12 +367,21 @@ export default function WatchlistPage() {
             <div className="stock-detail-wrapper">
               <div className="stock-detail-header card">
                 <div>
-                  <h2 className="detail-title">{selectedStock}</h2>
+                  <h2
+                    className="detail-title clickable hover-underline"
+                    onClick={() => navigate(`/stocks/${encodeURIComponent(selectedStock)}`)}
+                    title="View candlestick chart and fundamentals"
+                    style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    {selectedStock} <ExternalLink size={16} className="muted" />
+                  </h2>
                   <span className="badge badge-neutral">NSE NIFTY 50</span>
                 </div>
                 {quoteData && (
                   <div className="detail-price-box">
-                    <span className="detail-price">₹{quoteData.close}</span>
+                    <span className={`detail-price ${flashingSymbols[selectedStock] || ''}`}>
+                      ₹{quoteData.close}
+                    </span>
                     <span className={`detail-pct ${quoteData.change >= 0 ? 'text-success' : 'text-danger'}`}>
                       {quoteData.change >= 0 ? '+' : ''}{quoteData.change} ({quoteData.change_percent}%)
                     </span>

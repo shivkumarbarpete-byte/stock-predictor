@@ -243,3 +243,166 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   Model Evaluation (all NIFTY stocks) Styles
+   ========================================================================== */
+.global-evaluation-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.ge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.ge-title-group h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.ge-loading-state,
+.ge-error-state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 1.25rem;
+  background: var(--bg-primary);
+  border-radius: var(--radius);
+}
+
+.ge-content-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ge-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ge-section-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ge-section-title h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Table styles */
+.ge-table-container {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  background: var(--bg-secondary);
+  -webkit-overflow-scrolling: touch;
+}
+
+.ge-metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  text-align: left;
+  min-width: 520px;
+}
+
+.ge-metrics-table th {
+  background: var(--bg-primary);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ge-metrics-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.ge-metrics-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ge-model-name {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Classifier Stats Grid */
+.ge-classifier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+}
+
+.ge-stat-box {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  background: var(--bg-primary);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  gap: 4px;
+}
+
+.ge-stat-box.highlight {
+  border-left: 3px solid var(--primary);
+}
+
+.ge-stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ge-stat-val {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.ge-stat-sub {
+  font-size: 0.72rem;
+}
+
+/* Feature Importance Chart Wrapper */
+.ge-chart-wrapper {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 12px 14px 6px 0;
+  overflow: hidden;
+}
+
+/* Honest Note */
+.ge-honest-note {
+  padding: 10px 14px;
+  background: var(--bg-primary);
+  border-left: 3px solid var(--warning);
+  border-radius: var(--radius);
+}
+
+.ge-honest-note p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+

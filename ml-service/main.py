@@ -19,6 +19,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from stock_utils import (
     fetch_stock_data,
     get_history_with_predictions,
+    get_indices,
+    get_movers,
+    get_ohlc,
+    get_stock_info,
     load_metrics,
     load_model,
     predict_next_close,
@@ -152,3 +156,64 @@ def quote(symbol: str):
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
+
+
+@app.get("/ohlc/{symbol}")
+def ohlc(symbol: str, range: str = Query("1mo", description="Range: 1d, 5d, 1mo, 6mo, 1y, 5y")):
+    """
+    Candlestick OHLC + Volume data.
+    Valid ranges: 1d, 5d, 1mo, 6mo, 1y, 5y
+    """
+    valid_ranges = {"1d", "5d", "1mo", "6mo", "1y", "5y"}
+    if range not in valid_ranges:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid range '{range}'. Valid ranges: {sorted(list(valid_ranges))}",
+        )
+    try:
+        data = get_ohlc(symbol, range)
+        return {
+            "symbol": symbol.upper(),
+            "range": range,
+            "count": len(data),
+            "data": data,
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
+
+
+@app.get("/info/{symbol}")
+def info(symbol: str):
+    """
+    Comprehensive stock fundamentals and stats (sector, market_cap, pe_ratio, 52w high/low, etc.).
+    """
+    try:
+        return get_stock_info(symbol)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
+
+
+@app.get("/indices")
+def indices():
+    """
+    Returns NIFTY 50, SENSEX, BANK NIFTY indices with 30s cache.
+    """
+    try:
+        return get_indices()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
+
+
+@app.get("/movers")
+def movers():
+    """
+    Returns top 5 gainers, top 5 losers, and per-sector average changes among NIFTY 50 with 60s cache.
+    """
+    try:
+        return get_movers()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")

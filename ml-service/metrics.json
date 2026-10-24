@@ -1,27 +1,113 @@
 {
   "test_rows": 2380,
-  "always_up_directional_accuracy": 46.5,
+  "always_up_directional_accuracy": 46.6,
   "models": [
     {
       "model": "Linear Regression",
-      "mae": 18.69,
+      "mae": 18.65,
       "rmse": 30.59,
-      "r2": -0.0083,
-      "directional_accuracy": 47.0
-    },
-    {
-      "model": "Random Forest",
-      "mae": 18.71,
-      "rmse": 30.6,
-      "r2": -0.0132,
+      "r2": -0.0112,
       "directional_accuracy": 47.3
     },
     {
+      "model": "Random Forest",
+      "mae": 18.65,
+      "rmse": 30.52,
+      "r2": -0.0108,
+      "directional_accuracy": 46.2
+    },
+    {
       "model": "Naive (kal=aaj)",
-      "mae": 18.56,
-      "rmse": 30.48,
+      "mae": 18.51,
+      "rmse": 30.43,
       "r2": -0.0014,
       "directional_accuracy": null
+    }
+  ],
+  "cv": {
+    "n_splits": 5,
+    "models": [
+      {
+        "model": "Linear Regression",
+        "mae_mean": 15.77,
+        "mae_std": 2.8,
+        "rmse_mean": 26.17,
+        "rmse_std": 4.83,
+        "r2_mean": -0.0072,
+        "r2_std": 0.0031,
+        "directional_accuracy_mean": 49.98,
+        "directional_accuracy_std": 2.08
+      },
+      {
+        "model": "Random Forest",
+        "mae_mean": 15.79,
+        "mae_std": 2.76,
+        "rmse_mean": 26.19,
+        "rmse_std": 4.71,
+        "r2_mean": -0.0127,
+        "r2_std": 0.009,
+        "directional_accuracy_mean": 49.96,
+        "directional_accuracy_std": 1.85
+      },
+      {
+        "model": "Naive (kal=aaj)",
+        "mae_mean": 15.71,
+        "mae_std": 2.76,
+        "rmse_mean": 26.13,
+        "rmse_std": 4.78,
+        "r2_mean": -0.0024,
+        "r2_std": 0.0012,
+        "directional_accuracy_mean": null,
+        "directional_accuracy_std": null
+      }
+    ]
+  },
+  "direction_classifier": {
+    "accuracy": 46.93,
+    "precision": 45.64,
+    "recall": 72.07,
+    "always_up_accuracy": 46.64
+  },
+  "feature_importance": [
+    {
+      "feature": "Ret_1d",
+      "importance": 0.1331
+    },
+    {
+      "feature": "Volume_ratio",
+      "importance": 0.1252
+    },
+    {
+      "feature": "Ret_2d",
+      "importance": 0.1189
+    },
+    {
+      "feature": "Volatility20",
+      "importance": 0.1157
+    },
+    {
+      "feature": "EMA20_ratio",
+      "importance": 0.1128
+    },
+    {
+      "feature": "MACD_hist",
+      "importance": 0.1011
+    },
+    {
+      "feature": "Ret_5d",
+      "importance": 0.0924
+    },
+    {
+      "feature": "SMA50_ratio",
+      "importance": 0.0852
+    },
+    {
+      "feature": "SMA20_ratio",
+      "importance": 0.0668
+    },
+    {
+      "feature": "RSI14",
+      "importance": 0.0489
     }
   ]
 }

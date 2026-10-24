@@ -9,7 +9,9 @@ import Prediction     from './pages/Prediction';
 import Market          from './pages/Market';
 import Screener       from './pages/Screener';
 import Portfolio      from './pages/Portfolio';
+import Trading        from './pages/Trading';
 import Stocks         from './pages/Stocks';
+import StockDetail    from './pages/StockDetail';
 import NotFound       from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout      from './components/layout/AppLayout';
@@ -24,12 +26,14 @@ export default function App() {
 
       {/* Protected application shell */}
       <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-        <Route path="/dashboard"   element={<Dashboard />} />
-        <Route path="/markets"     element={<Market />} />
-        <Route path="/stocks"      element={<Stocks />} />
+        <Route path="/dashboard"      element={<Dashboard />} />
+        <Route path="/markets"        element={<Market />} />
+        <Route path="/stocks"         element={<Stocks />} />
+        <Route path="/stocks/:symbol" element={<StockDetail />} />
         <Route path="/screener"    element={<Screener />} />
         <Route path="/watchlist"   element={<Watchlist />} />
         <Route path="/portfolio"   element={<Portfolio />} />
+        <Route path="/trading"     element={<Trading />} />
         <Route path="/compare"     element={<Compare />} />
         <Route path="/prediction"  element={<Prediction />} />
         <Route path="/predictions" element={<Prediction />} />

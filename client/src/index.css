@@ -261,3 +261,31 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .muted { color: var(--muted); }
 .clickable { cursor: pointer; }
 .divider { border: none; border-top: 1px solid var(--border-color); margin: 0; }
+
+/* Price Change Flash Animations */
+@keyframes flash-green {
+  0%   { background-color: rgba(22, 163, 74, 0.4); }
+  100% { background-color: transparent; }
+}
+
+@keyframes flash-red {
+  0%   { background-color: rgba(220, 38, 38, 0.4); }
+  100% { background-color: transparent; }
+}
+
+.flash-up {
+  animation: flash-green 1.2s ease-out;
+  border-radius: 4px;
+}
+
+.flash-down {
+  animation: flash-red 1.2s ease-out;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flash-up,
+  .flash-down {
+    animation: none !important;
+  }
+}

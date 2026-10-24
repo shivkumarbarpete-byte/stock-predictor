@@ -314,9 +314,9 @@ export default function Screener() {
                       <tr
                         key={item.symbol}
                         className="clickable-row"
-                        onClick={() => navigate(`/prediction?symbol=${item.symbol}`)}
+                        onClick={() => navigate(`/stocks/${encodeURIComponent(item.symbol)}`)}
                       >
-                        <td className="font-bold">{item.symbol}</td>
+                        <td className="font-bold text-primary-color">{item.symbol}</td>
                         <td className="muted">{item.name}</td>
                         <td>
                           <span className="badge badge-neutral">{item.sector}</span>

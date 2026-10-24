@@ -1,9 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   ResponsiveContainer,
   LineChart,
   Line,
+  BarChart,
+  Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -16,9 +19,10 @@ import {
   TrendingUp,
   TrendingDown,
   RefreshCw,
-  CheckCircle,
   Activity,
   Layers,
+  BarChart3,
+  AlertCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import mlApi from '../services/mlApi';
@@ -40,31 +44,14 @@ export default function Prediction() {
   const [showSMA20, setShowSMA20]             = useState(true);
   const [showSMA50, setShowSMA50]             = useState(true);
 
+  // Global model metrics state (/api/ml/metrics)
+  const [modelMetrics, setModelMetrics]       = useState(null);
+  const [metricsLoading, setMetricsLoading]   = useState(false);
+  const [metricsError, setMetricsError]       = useState(null);
+
   const searchBoxRef = useRef(null);
 
-  useEffect(() => {
-    const sym = searchParams.get('symbol');
-    if (sym && sym !== symbol) {
-      setSymbol(sym);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
-
-  useEffect(() => {
-    fetchPredictionAndHistory(symbol);
-  }, [symbol]);
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target)) {
-        setShowResults(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const fetchPredictionAndHistory = async (targetSymbol) => {
+  const fetchPredictionAndHistory = useCallback(async (targetSymbol) => {
     setLoading(true);
     setError(null);
     try {
@@ -80,7 +67,57 @@ export default function Prediction() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const sym = searchParams.get('symbol');
+    if (sym && sym !== symbol) {
+      setSymbol(sym);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  useEffect(() => {
+    fetchPredictionAndHistory(symbol);
+  }, [symbol, fetchPredictionAndHistory]);
+
+  // Fetch /metrics once on mount
+  useEffect(() => {
+    let isMounted = true;
+    const fetchGlobalMetrics = async () => {
+      setMetricsLoading(true);
+      setMetricsError(null);
+      try {
+        const res = await mlApi.get('/metrics');
+        if (isMounted) {
+          setModelMetrics(res.data);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setMetricsError(err.response?.data?.message || err.message || 'Could not load global model metrics');
+        }
+      } finally {
+        if (isMounted) {
+          setMetricsLoading(false);
+        }
+      }
+    };
+
+    fetchGlobalMetrics();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const handleInputChange = (e) => {
     const val = e.target.value;
@@ -264,8 +301,205 @@ export default function Prediction() {
                   <span>Directional accuracy:</span>
                   <strong>{predictData?.metrics?.directional_accuracy}%</strong>
                 </div>
-                      </div>
+              </div>
             </div>
+          </div>
+
+          {/* New Card: Model Evaluation (all NIFTY stocks) */}
+          <div className="card global-evaluation-card">
+            <div className="ge-header">
+              <div className="ge-title-group">
+                <h3><BarChart3 size={20} /> Model Evaluation (all NIFTY stocks)</h3>
+                <p className="muted text-small">
+                  Comprehensive performance across 10 NIFTY stocks (5 years data) evaluated via walk-forward validation and directional classification.
+                </p>
+              </div>
+            </div>
+
+            {metricsLoading ? (
+              <div className="ge-loading-state">
+                <RefreshCw size={20} className="spin-icon" />
+                <span className="muted text-small">Loading all-stock validation metrics…</span>
+              </div>
+            ) : metricsError ? (
+              <div className="ge-error-state">
+                <AlertCircle size={18} className="text-muted" />
+                <span className="muted text-small">
+                  Global model evaluation metrics unavailable ({metricsError}). Individual stock prediction remains active.
+                </span>
+              </div>
+            ) : modelMetrics ? (
+              <div className="ge-content-sections">
+                {/* Section A: Walk-forward CV */}
+                {modelMetrics.cv?.models && modelMetrics.cv.models.length > 0 && (
+                  <div className="ge-section">
+                    <div className="ge-section-title">
+                      <h4>Section A: Walk-forward CV (mean ± std over {modelMetrics.cv?.n_splits || 5} folds)</h4>
+                      <span className="muted text-small">Expanding window cross-validation preventing any future data leakage</span>
+                    </div>
+
+                    <div className="ge-table-container">
+                      <table className="ge-metrics-table">
+                        <thead>
+                          <tr>
+                            <th>Model</th>
+                            <th>MAE (₹)</th>
+                            <th>RMSE (₹)</th>
+                            <th>R² (Return)</th>
+                            <th>Direction Acc.</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {modelMetrics.cv.models.map((m) => (
+                            <tr key={m.model}>
+                              <td className="ge-model-name">{m.model}</td>
+                              <td>
+                                {m.mae_mean != null
+                                  ? `${Number(m.mae_mean).toFixed(2)} ± ${Number(m.mae_std || 0).toFixed(2)}`
+                                  : '-'}
+                              </td>
+                              <td>
+                                {m.rmse_mean != null
+                                  ? `${Number(m.rmse_mean).toFixed(2)} ± ${Number(m.rmse_std || 0).toFixed(2)}`
+                                  : '-'}
+                              </td>
+                              <td>
+                                {m.r2_mean != null
+                                  ? `${Number(m.r2_mean).toFixed(4)} ± ${Number(m.r2_std || 0).toFixed(4)}`
+                                  : '-'}
+                              </td>
+                              <td>
+                                {m.directional_accuracy_mean != null
+                                  ? `${Number(m.directional_accuracy_mean).toFixed(2)}% ± ${Number(m.directional_accuracy_std || 0).toFixed(2)}%`
+                                  : '-'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Section B: Up/Down classifier */}
+                {modelMetrics.direction_classifier && (
+                  <div className="ge-section">
+                    <div className="ge-section-title">
+                      <h4>Section B: Up/Down classifier</h4>
+                      <span className="muted text-small">Random Forest Classifier predicting next-day return sign (1 if return &gt; 0 else 0)</span>
+                    </div>
+
+                    <div className="ge-classifier-grid">
+                      <div className="ge-stat-box">
+                        <span className="ge-stat-label">Model Accuracy</span>
+                        <span className="ge-stat-val">
+                          {modelMetrics.direction_classifier.accuracy != null
+                            ? `${modelMetrics.direction_classifier.accuracy}%`
+                            : '-'}
+                        </span>
+                        <span className="ge-stat-sub muted text-small">Test set direction accuracy</span>
+                      </div>
+
+                      <div className="ge-stat-box">
+                        <span className="ge-stat-label">Precision</span>
+                        <span className="ge-stat-val">
+                          {modelMetrics.direction_classifier.precision != null
+                            ? `${modelMetrics.direction_classifier.precision}%`
+                            : '-'}
+                        </span>
+                        <span className="ge-stat-sub muted text-small">Positive prediction accuracy</span>
+                      </div>
+
+                      <div className="ge-stat-box">
+                        <span className="ge-stat-label">Recall</span>
+                        <span className="ge-stat-val">
+                          {modelMetrics.direction_classifier.recall != null
+                            ? `${modelMetrics.direction_classifier.recall}%`
+                            : '-'}
+                        </span>
+                        <span className="ge-stat-sub muted text-small">Positive move capture rate</span>
+                      </div>
+
+                      <div className="ge-stat-box highlight">
+                        <span className="ge-stat-label">Always-UP Baseline</span>
+                        <span className="ge-stat-val">
+                          {modelMetrics.direction_classifier.always_up_accuracy != null
+                            ? `${modelMetrics.direction_classifier.always_up_accuracy}%`
+                            : '-'}
+                        </span>
+                        <span className="ge-stat-sub muted text-small">Naive majority class baseline</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Section C: Feature Importance */}
+                {modelMetrics.feature_importance && modelMetrics.feature_importance.length > 0 && (
+                  <div className="ge-section">
+                    <div className="ge-section-title">
+                      <h4>Section C: What the model looks at</h4>
+                      <span className="muted text-small">Random Forest feature importance scores (relative contribution to prediction)</span>
+                    </div>
+
+                    <div className="ge-chart-wrapper" style={{ width: '100%', height: Math.max(280, modelMetrics.feature_importance.length * 36) }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          layout="vertical"
+                          data={modelMetrics.feature_importance}
+                          margin={{ top: 10, right: 30, left: 100, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" opacity={0.15} horizontal={false} />
+                          <XAxis
+                            type="number"
+                            domain={[0, 'dataMax + 0.02']}
+                            tick={{ fontSize: 12 }}
+                            tickFormatter={(v) => Number(v).toFixed(2)}
+                          />
+                          <YAxis
+                            dataKey="feature"
+                            type="category"
+                            tick={{ fontSize: 12, fill: 'var(--text-primary)' }}
+                            width={90}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              background: 'var(--bg-secondary)',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: '8px',
+                              color: 'var(--text-primary)',
+                            }}
+                            formatter={(value) => [Number(value).toFixed(4), 'Importance']}
+                          />
+                          <Bar
+                            dataKey="importance"
+                            name="Feature Importance"
+                            fill="var(--primary)"
+                            radius={[0, 4, 4, 0]}
+                          >
+                            {modelMetrics.feature_importance.map((entry, index) => (
+                              <Cell
+                                key={`cell-${entry.feature}`}
+                                fill={index === 0 ? 'var(--primary)' : index < 3 ? 'var(--primary)' : 'var(--text-secondary)'}
+                                opacity={0.85}
+                              />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
+
+                {/* Honest note under the card */}
+                <div className="ge-honest-note">
+                  <p className="muted text-small">
+                    <strong>Note:</strong> Next-day stock returns are very noisy; compare every model against the naive baseline before trusting it.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="muted text-small">No model evaluation data available.</p>
+            )}
           </div>
 
           {/* Actual vs Predicted + Moving Averages Chart */}

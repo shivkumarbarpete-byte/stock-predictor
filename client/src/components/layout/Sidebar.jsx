@@ -6,6 +6,7 @@ import {
   SlidersHorizontal,
   BookMarked,
   BriefcaseBusiness,
+  Wallet2,
   GitCompareArrows,
   BrainCircuit,
   LineChart,
@@ -31,6 +32,7 @@ const NAV_SECTIONS = [
     items: [
       { to: '/watchlist',  icon: BookMarked,           label: 'Watchlist' },
       { to: '/portfolio',  icon: BriefcaseBusiness,    label: 'Portfolio' },
+      { to: '/trading',    icon: Wallet2,              label: 'Paper Trading' },
     ],
   },
   {

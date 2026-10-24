@@ -1,0 +1,61 @@
+"""
+nifty50_sectors.py
+------------------
+Mapping of NIFTY 50 stock symbols to their respective industry sectors.
+Used for sector heatmap calculation on /movers.
+"""
+
+NIFTY50_SECTOR_MAP = {
+    'RELIANCE.NS': 'Energy',
+    'TCS.NS': 'IT Services',
+    'HDFCBANK.NS': 'Banking',
+    'INFY.NS': 'IT Services',
+    'ICICIBANK.NS': 'Banking',
+    'HINDUNILVR.NS': 'FMCG',
+    'ITC.NS': 'FMCG',
+    'SBIN.NS': 'Banking',
+    'BHARTIARTL.NS': 'Telecom',
+    'LTIM.NS': 'IT Services',
+    'KOTAKBANK.NS': 'Banking',
+    'LT.NS': 'Construction',
+    'AXISBANK.NS': 'Banking',
+    'HCLTECH.NS': 'IT Services',
+    'ASIANPAINT.NS': 'Consumer Durables',
+    'MARUTI.NS': 'Automobile',
+    'SUNPHARMA.NS': 'Pharma',
+    'TITAN.NS': 'Consumer Durables',
+    'BAJFINANCE.NS': 'Financial Services',
+    'ULTRACEMCO.NS': 'Materials',
+    'TATASTEEL.NS': 'Metals',
+    'NTPC.NS': 'Power',
+    'POWERGRID.NS': 'Power',
+    'M&M.NS': 'Automobile',
+    'TATAMOTORS.NS': 'Automobile',
+    'ADANIENT.NS': 'Metals & Mining',
+    'ADANIPORTS.NS': 'Infrastructure',
+    'COALINDIA.NS': 'Energy',
+    'ONGC.NS': 'Energy',
+    'JSWSTEEL.NS': 'Metals',
+    'GRASIM.NS': 'Materials',
+    'NESTLEIND.NS': 'FMCG',
+    'TECHM.NS': 'IT Services',
+    'WIPRO.NS': 'IT Services',
+    'HDFCLIFE.NS': 'Financial Services',
+    'SBILIFE.NS': 'Financial Services',
+    'DRREDDY.NS': 'Pharma',
+    'DIVISLAB.NS': 'Pharma',
+    'CIPLA.NS': 'Pharma',
+    'EICHERMOT.NS': 'Automobile',
+    'HEROMOTOCO.NS': 'Automobile',
+    'BAJAJ-AUTO.NS': 'Automobile',
+    'TATACONSUM.NS': 'FMCG',
+    'BRITANNIA.NS': 'FMCG',
+    'BPCL.NS': 'Energy',
+    'APOLLOHOSP.NS': 'Healthcare',
+    'HINDALCO.NS': 'Metals',
+    'INDUSINDBK.NS': 'Banking',
+    'BAJAJFINSV.NS': 'Financial Services',
+    'SHRIRAMFIN.NS': 'Financial Services',
+}
+
+NIFTY50_SYMBOLS = list(NIFTY50_SECTOR_MAP.keys())
